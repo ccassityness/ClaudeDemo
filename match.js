@@ -160,12 +160,13 @@
       .slice(0, 8);
 
     const esc = PP.esc;
-    out.innerHTML = `<h2>Your top matches</h2>
+    out.innerHTML = `<h2>Your top matches 💖</h2>
       <ol class="match-list">${results.map((r, i) => {
         const b = r.breed, a = b.akc, seen = PP.isSeen(b.id);
         const life = PP.fmtRange(a.life_expectancy_years, 'years');
         const bits = [b.origin, a.size, life && `lives ${life}`].filter(Boolean);
         return `<li class="match">
+          ${PP.picHTML(b)}
           <div class="match-head">
             <h3>${i + 1}. ${esc(b.name)}</h3>
             <span class="score">${Math.round(r.score * 100)}% match</span>
@@ -182,6 +183,7 @@
         </li>`;
       }).join('')}</ol>
       <p class="hint">Rescue groups exist for almost every breed, and many shelter mixes share these traits. Search "${esc(results[0]?.breed.name ?? 'breed')} rescue" near you.</p>`;
+    PP.refreshPhotos();
   }
 
   function init() {
