@@ -51,8 +51,12 @@
   const sizeOf = (b) => b.akc?.size || null;
 
   /* ---------- Pictures: kawaii cartoon dogs ---------- */
+  // If cartoon.js failed to load, show a puppy emoji rather than breaking the page.
+  const cartoon = (b, opts) => (typeof window.dogSVG === 'function'
+    ? window.dogSVG(b, opts) : '<span class="pic-fallback" aria-hidden="true">🐶</span>');
+  const cartoonBg = (b) => (typeof window.dogSVG?.background === 'function' ? window.dogSVG.background(b) : '');
   function picHTML(b, cls = '') {
-    return `<div class="pic ${cls}">${window.dogSVG(b)}</div>`;
+    return `<div class="pic ${cls}">${cartoon(b)}</div>`;
   }
 
   /* ---------- Passport tab ---------- */
@@ -98,7 +102,7 @@
       <div class="pp-head" aria-hidden="true"><span>♡ Puppy Passport</span><span>No. ${String(b._no).padStart(3, '0')}</span></div>
       <div class="pp-body">
         <button class="pp-photo" data-open="${esc(b.id)}" tabindex="-1" aria-hidden="true"
-          style="--photo-bg:${window.dogSVG.background(b)}">${window.dogSVG(b, { portrait: true })}</button>
+          style="--photo-bg:${cartoonBg(b)}">${cartoon(b, { portrait: true })}</button>
         <div class="pp-info">
           <h3><button data-open="${esc(b.id)}">${esc(b.name)}</button></h3>
           ${aka}
@@ -304,7 +308,7 @@
     const chosen = [];
     while (chosen.length < 3 && pool.length) chosen.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
     $('#cover-dogs').innerHTML = chosen.map((b) =>
-      `<button class="cover-dog" data-open="${esc(b.id)}" aria-label="Meet the ${esc(b.name)}">${window.dogSVG(b)}</button>`).join('');
+      `<button class="cover-dog" data-open="${esc(b.id)}" aria-label="Meet the ${esc(b.name)}">${cartoon(b)}</button>`).join('');
   }
 
   /* ---------- Wiring ---------- */
