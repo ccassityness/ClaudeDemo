@@ -49,6 +49,7 @@ body {
 h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; line-height: 1.2; }
 a { color: var(--stamp); }
 button, input, select { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
 .visually-hidden {
   position: absolute; width: 1px; height: 1px; overflow: hidden;
   clip: rect(0 0 0 0); white-space: nowrap;
@@ -115,7 +116,8 @@ main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 40px; }
   display: flex; flex-direction: column; gap: 6px; min-height: 140px;
 }
 .card.seen { border-color: color-mix(in srgb, var(--stamp) 50%, var(--line)); }
-.card h3 { margin: 0; font-size: 18px; padding-right: 54px; }
+.card h3 { margin: 0; font-size: 18px; }
+.card > h3, .card > .meta { padding-right: 54px; }
 .card h3 button {
   all: unset; cursor: pointer;
 }
