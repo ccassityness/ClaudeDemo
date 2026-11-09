@@ -183,7 +183,6 @@
         </li>`;
       }).join('')}</ol>
       <p class="hint">Rescue groups exist for almost every breed, and many shelter mixes share these traits. Search "${esc(results[0]?.breed.name ?? 'breed')} rescue" near you.</p>`;
-    PP.refreshPhotos();
   }
 
   function init() {

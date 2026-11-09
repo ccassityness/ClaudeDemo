@@ -144,7 +144,9 @@
     return '';
   }
 
-  function dogSVG(breed) {
+  // opts.portrait: no circle background, adds shoulders, and sits at the
+  // bottom of a taller frame, like a passport photo.
+  function dogSVG(breed, opts = {}) {
     const r = rng(hash(breed.id));
     const pick = (arr) => arr[Math.floor(r() * arr.length)];
 
@@ -197,9 +199,16 @@
 
     const halo = extinct ? `<ellipse cx="60" cy="14" rx="22" ry="6" fill="none" stroke="#f5c542" stroke-width="4"/>` : '';
 
-    return `<svg class="dog-svg" viewBox="0 0 120 120" role="img" aria-label="Cartoon ${breed.name.replace(/[<>&"]/g, '')}">
-      <circle cx="60" cy="60" r="58" fill="${bg}"/>
+    const portrait = !!opts.portrait;
+    const shoulders = portrait
+      ? `<path d="M8 140 C10 104 34 94 60 94 C86 94 110 104 112 140 Z" fill="${coat}" stroke="${outline}" stroke-width="2.5"/>
+         <path d="M44 97 Q60 112 76 97" fill="none" stroke="#ff7eb3" stroke-width="5" stroke-linecap="round"/>
+         <circle cx="60" cy="110" r="5" fill="#ffd166" stroke="#e0a930" stroke-width="1.5"/>`
+      : '';
+    return `<svg class="dog-svg" viewBox="${portrait ? '0 0 120 140' : '0 0 120 120'}" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Cartoon ${breed.name.replace(/[<>&"]/g, '')}">
+      ${portrait ? '' : `<circle cx="60" cy="60" r="58" fill="${bg}"/>`}
       <g ${extinct ? 'opacity=".75"' : ''}>
+        ${shoulders}
         ${earsSVG(earStyle, earColor, outline, inner, true)}
         ${fluff}
         <ellipse cx="60" cy="64" rx="38" ry="34" fill="${coat}" stroke="${outline}" stroke-width="2.5"/>
@@ -222,4 +231,5 @@
   }
 
   window.dogSVG = dogSVG;
+  window.dogSVG.background = (breed) => GROUP_BG[breed.breed_type] || '#ffe4ef';
 })();
