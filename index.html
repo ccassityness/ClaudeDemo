@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Puppy Passport</title>
+  <meta name="description" content="Stamp every dog breed you meet, and find the breed that fits your life.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Mochiy+Pop+One&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="cover">
+    <div class="cover-inner">
+      <div class="cover-dogs" id="cover-dogs" aria-label="Random pups"></div>
+      <p class="cover-kicker">♡ Official travel document of a dog lover ♡</p>
+      <h1>Puppy Passport</h1>
+      <p class="cover-sub">Stamp every breed you meet. Find the one that should come home with you.</p>
+      <div class="progress" aria-live="polite">
+        <div class="progress-numbers">
+          <span id="seen-count" class="big">0</span>
+          <span>of <span id="living-count">0</span> living breeds stamped ✨</span>
+        </div>
+        <div class="bar" role="progressbar" aria-label="Breeds stamped" aria-valuemin="0" aria-valuemax="100" id="progress-bar">
+          <div class="bar-fill" id="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" id="tab-passport" aria-controls="panel-passport" aria-selected="true">Passport</button>
+    <button role="tab" id="tab-stamps" aria-controls="panel-stamps" aria-selected="false">My stamps</button>
+    <button role="tab" id="tab-match" aria-controls="panel-match" aria-selected="false">Find my breed</button>
+  </nav>
+
+  <main>
+    <!-- Passport: browse every breed and stamp the ones you've seen -->
+    <section id="panel-passport" role="tabpanel" aria-labelledby="tab-passport">
+      <div class="toolbar">
+        <label class="search">
+          <span class="visually-hidden">Search breeds</span>
+          <input id="search" type="search" placeholder="Search breeds, nicknames or countries…" autocomplete="off">
+        </label>
+        <label>
+          <span class="visually-hidden">Group</span>
+          <select id="filter-group"><option value="">All groups</option></select>
+        </label>
+        <label>
+          <span class="visually-hidden">Country of origin</span>
+          <select id="filter-origin"><option value="">All countries</option></select>
+        </label>
+        <label>
+          <span class="visually-hidden">Status</span>
+          <select id="filter-status">
+            <option value="living">Living breeds</option>
+            <option value="extinct">Extinct breeds</option>
+            <option value="">Living &amp; extinct</option>
+          </select>
+        </label>
+        <label>
+          <span class="visually-hidden">Stamped</span>
+          <select id="filter-seen">
+            <option value="">Seen &amp; unseen</option>
+            <option value="seen">Stamped only</option>
+            <option value="unseen">Not yet stamped</option>
+          </select>
+        </label>
+      </div>
+      <div class="subbar">
+        <p class="result-count" id="result-count" aria-live="polite"></p>
+        <div class="pic-toggle" role="group" aria-label="Show breeds as">
+          <button type="button" data-pic-mode="cartoon" aria-pressed="true">🐶 Cartoons</button>
+          <button type="button" data-pic-mode="photo" aria-pressed="false">📷 Photos</button>
+        </div>
+      </div>
+      <ul class="breed-grid" id="breed-grid"></ul>
+      <button class="ghost more" id="show-more" hidden>Show more breeds</button>
+    </section>
+
+    <!-- Stamps: summary of what you've collected -->
+    <section id="panel-stamps" role="tabpanel" aria-labelledby="tab-stamps" hidden>
+      <div class="stats" id="group-stats"></div>
+      <h2>Stamp collection 🐾</h2>
+      <p class="hint" id="stamps-empty">No stamps yet. Head to the Passport tab and stamp a breed you've met.</p>
+      <ol class="stamp-book" id="stamp-book"></ol>
+      <div class="data-actions">
+        <button class="ghost" id="export-btn">Download my passport</button>
+        <label class="ghost file-btn">Restore from file
+          <input type="file" id="import-file" accept="application/json,.json">
+        </label>
+        <button class="ghost danger" id="reset-btn">Clear all stamps</button>
+      </div>
+    </section>
+
+    <!-- Matchmaker: questionnaire scoring the AKC breeds -->
+    <section id="panel-match" role="tabpanel" aria-labelledby="tab-match" hidden>
+      <h2>Which breed should you adopt? 💕</h2>
+      <p class="hint">Answer a few questions about your life. We'll compare your answers to AKC trait ratings for <span id="akc-count">the</span> breeds and suggest your best matches. It's a starting point, not a verdict: meet the dog, and check your local shelter, where mixed breeds are waiting too.</p>
+      <form id="match-form" class="quiz"></form>
+      <div id="match-results" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <dialog id="breed-dialog" aria-labelledby="dialog-title">
+    <div class="dialog-body" id="dialog-body"></div>
+  </dialog>
+
+  <footer>
+    <p>Breed list from <a href="https://en.wikipedia.org/wiki/List_of_dog_breeds">Wikipedia</a>; size and trait data from AKC breed profiles via <a href="https://github.com/tmfilho/akcdata">akcdata</a>. Photos are each breed's lead image on Wikipedia (Wikimedia Commons; open a breed to see its source). Cartoon pups are drawn by this page and are just for fun, not exact likenesses. Countries of origin are hand-assigned and may be wrong for some rare breeds. Your stamps are saved only in this browser.</p>
+  </footer>
+
+  <script src="cartoon.js"></script>
+  <script src="photos.js"></script>
+  <script src="app.js"></script>
+  <script src="match.js"></script>
+</body>
+</html>
