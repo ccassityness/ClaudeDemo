@@ -50,42 +50,9 @@
   };
   const sizeOf = (b) => b.akc?.size || null;
 
-  /* ---------- Pictures: kawaii cartoons, or Wikipedia photos ---------- */
-  const PIC_KEY = 'puppyPassport.pics';
-  let picMode = 'cartoon';
-  try { if (localStorage.getItem(PIC_KEY) === 'photo') picMode = 'photo'; } catch { /* ignore */ }
-  const photos = () => window.BreedPhotos;
-
-  // forcePhoto: show the photo when one exists, whatever the toggle says (dialog).
-  function picInner(b, forcePhoto) {
-    const url = (picMode === 'photo' || forcePhoto) && photos() ? photos().get(b.id) : null;
-    return url
-      ? `<img class="pic-img" src="${esc(url)}" alt="Photo of ${esc(b.name)}" loading="lazy" decoding="async">`
-      : window.dogSVG(b);
-  }
-  function picHTML(b, cls = '', forcePhoto = false) {
-    return `<div class="pic ${cls}" data-pic="${esc(b.id)}"${forcePhoto ? ' data-force-photo' : ''}>${picInner(b, forcePhoto)}</div>`;
-  }
-  function repaintPics(ids) {
-    const want = ids ? new Set(ids) : null;
-    document.querySelectorAll('[data-pic]').forEach((el) => {
-      if (want && !want.has(el.dataset.pic)) return;
-      const b = byId.get(el.dataset.pic);
-      if (b) el.innerHTML = picInner(b, el.hasAttribute('data-force-photo'));
-    });
-  }
-  function requestVisiblePhotos() {
-    if (picMode !== 'photo' || !photos()) return;
-    const ids = [...document.querySelectorAll('[data-pic]')].map((el) => el.dataset.pic);
-    photos().request(ids.map((id) => byId.get(id)).filter(Boolean));
-  }
-  function setPicMode(mode) {
-    picMode = mode;
-    try { localStorage.setItem(PIC_KEY, mode); } catch { /* ignore */ }
-    document.querySelectorAll('[data-pic-mode]').forEach((btn) =>
-      btn.setAttribute('aria-pressed', btn.dataset.picMode === mode));
-    repaintPics();
-    requestVisiblePhotos();
+  /* ---------- Pictures: kawaii cartoon dogs ---------- */
+  function picHTML(b, cls = '') {
+    return `<div class="pic ${cls}">${window.dogSVG(b)}</div>`;
   }
 
   /* ---------- Passport tab ---------- */
@@ -115,21 +82,39 @@
     });
   }
 
+  // Machine-readable-zone style line along the bottom of each passport page.
+  const mrz = (b) => {
+    const name = fold(b.name).toUpperCase().replace(/[^A-Z0-9]+/g, '<');
+    const origin = fold(b.origin).toUpperCase().replace(/[^A-Z]+/g, '').slice(0, 3) || 'XXX';
+    return `P<${origin}${name}`.padEnd(44, '<').slice(0, 44);
+  };
+
   function cardHTML(b) {
     const seen = isSeen(b.id);
     const size = sizeOf(b);
     const aka = b.also_known_as.length ? `<p class="meta">aka ${esc(b.also_known_as.join(', '))}</p>` : '';
+    const field = (k, v) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`;
     return `<li class="card${seen ? ' seen' : ''}${b.status === 'extinct' ? ' is-extinct' : ''}" data-id="${esc(b.id)}">
-      <button class="pic-btn" data-open="${esc(b.id)}" tabindex="-1" aria-hidden="true">${picHTML(b)}</button>
-      <button class="stamp-btn" data-stamp="${esc(b.id)}" aria-pressed="${seen}"
-        aria-label="${seen ? 'Remove stamp for' : 'Stamp'} ${esc(b.name)}">${seen ? '🐾' : 'Stamp'}</button>
-      <h3><button data-open="${esc(b.id)}">${esc(b.name)}</button></h3>
-      ${aka}
-      <p class="meta">${esc(b.origin)}${seen ? ` · stamped ${esc(fmtDate(stamps[b.id].date))}` : ''}</p>
-      <div class="tags">
-        <span class="tag">${esc(b.breed_type)}</span>
-        ${size && size !== b.breed_type ? `<span class="tag">${esc(size)}</span>` : ''}
-        ${b.status === 'extinct' ? '<span class="tag extinct">Extinct</span>' : ''}
+      <div class="pp-head" aria-hidden="true"><span>♡ Puppy Passport</span><span>No. ${String(b._no).padStart(3, '0')}</span></div>
+      <div class="pp-body">
+        <button class="pp-photo" data-open="${esc(b.id)}" tabindex="-1" aria-hidden="true"
+          style="--photo-bg:${window.dogSVG.background(b)}">${window.dogSVG(b, { portrait: true })}</button>
+        <div class="pp-info">
+          <h3><button data-open="${esc(b.id)}">${esc(b.name)}</button></h3>
+          ${aka}
+          <dl class="pp-fields">
+            ${field('Origin', b.origin)}
+            ${field('Group', b.breed_type)}
+            ${size ? field('Size', size) : ''}
+            ${b.status === 'extinct' ? field('Status', 'Extinct 😇') : ''}
+          </dl>
+        </div>
+        ${seen ? `<span class="pp-stamp" aria-hidden="true">Seen<small>${esc(fmtDate(stamps[b.id].date))}</small></span>` : ''}
+      </div>
+      <div class="pp-foot">
+        <span class="pp-mrz" aria-hidden="true">${esc(mrz(b))}</span>
+        <button class="stamp-btn" data-stamp="${esc(b.id)}" aria-pressed="${seen}"
+          aria-label="${seen ? 'Remove stamp for' : 'Stamp'} ${esc(b.name)}">${seen ? '🐾 Stamped' : '＋ Stamp'}</button>
       </div>
     </li>`;
   }
@@ -143,7 +128,6 @@
       : `${list.length} of ${breeds.length} breeds match`;
     $('#show-more').hidden = list.length <= shown;
     $('#show-more').textContent = `Show more breeds (${list.length - shown} left)`;
-    requestVisiblePhotos();
   }
 
   function resetPagingAndRender() { shown = PAGE_SIZE; renderGrid(); }
@@ -200,9 +184,8 @@
       const btn = document.querySelector(`.stamp-btn[data-stamp="${CSS.escape(id)}"]`);
       if (btn) {
         btn.focus();
-        if (isSeen(id)) btn.classList.add('just-stamped');
+        if (isSeen(id)) btn.closest('.card').querySelector('.pp-stamp')?.classList.add('just-stamped');
       }
-      requestVisiblePhotos();
     } else {
       renderGrid();
     }
@@ -254,10 +237,7 @@
     }
     $('#dialog-body').innerHTML = `
       <button class="close" data-close aria-label="Close">×</button>
-      <div class="dialog-hero">
-        <div class="pic pic-lg">${window.dogSVG(b)}</div>
-        <figure class="photo-frame" data-photo-for="${esc(id)}">${photoFrameInner(b)}</figure>
-      </div>
+      <div class="dialog-hero">${picHTML(b, 'pic-lg')}</div>
       <h2 id="dialog-title">${esc(b.name)}</h2>
       ${seen ? `<p class="meta">Stamped ${esc(fmtDate(stamps[id].date))}</p>` : ''}
       <dl class="facts">${facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
@@ -269,25 +249,6 @@
       </div>`;
     const dlg = $('#breed-dialog');
     if (!dlg.open) dlg.showModal();
-    if (photos()) photos().request([b]).then(() => paintPhotoFrame(b));
-  }
-
-  // The dialog shows the cartoon and, beside it, the real photo when Wikipedia has one.
-  function photoFrameInner(b) {
-    const url = photos()?.get(b.id);
-    if (url) {
-      return `<img class="pic-img" src="${esc(url)}" alt="Photo of ${esc(b.name)}">
-        <figcaption><a href="${esc(b.wikipedia)}" target="_blank" rel="noopener">Photo via Wikipedia</a></figcaption>`;
-    }
-    return `<span class="photo-empty">${url === null ? 'No photo on Wikipedia' : 'Fetching photo…'}</span>`;
-  }
-  function paintPhotoFrame(b) {
-    const el = document.querySelector(`[data-photo-for="${CSS.escape(b.id)}"]`);
-    if (el) {
-      el.innerHTML = photoFrameInner(b);
-      // Request finished without a result (offline / blocked): say so instead of spinning.
-      if (photos()?.get(b.id) === undefined) el.innerHTML = '<span class="photo-empty">Photo unavailable offline</span>';
-    }
   }
 
   /* ---------- Tabs ---------- */
@@ -377,21 +338,6 @@
       });
     });
 
-    document.querySelectorAll('[data-pic-mode]').forEach((btn) =>
-      btn.addEventListener('click', () => setPicMode(btn.dataset.picMode)));
-    document.addEventListener('puppypassport:photos', (e) => {
-      repaintPics(e.detail);
-      e.detail.forEach((id) => { const b = byId.get(id); if (b) paintPhotoFrame(b); });
-    });
-    // A photo that fails to load turns back into its cartoon.
-    document.addEventListener('error', (e) => {
-      const img = e.target;
-      if (!(img instanceof HTMLImageElement) || !img.classList.contains('pic-img')) return;
-      const holder = img.closest('[data-pic]');
-      const b = holder && byId.get(holder.dataset.pic);
-      if (b) holder.innerHTML = window.dogSVG(b);
-    }, true);
-
     $('#export-btn').addEventListener('click', exportStamps);
     $('#import-file').addEventListener('change', (e) => {
       const f = e.target.files[0];
@@ -423,10 +369,12 @@
         .map((b) => ({
           ...b,
           origin: b.origin || 'Unknown',
+          _no: 0,
           also_known_as: b.also_known_as || [],
           _search: fold([b.name, b.origin, b.breed_type, ...b.also_known_as].join(' ')),
         }))
         .sort((a, b) => a.name.localeCompare(b.name));
+      breeds.forEach((b, i) => { b._no = i + 1; });
       byId = new Map(breeds.map((b) => [b.id, b]));
     } catch (err) {
       $('#result-count').innerHTML = `Couldn't load the breed list (${esc(err.message)}). ` +
@@ -435,10 +383,9 @@
     }
 
     fillFilters();
-    setPicMode(picMode);
     renderAll();
     renderCoverDogs();
-    window.PuppyPassport = { breeds, byId, isSeen, toggleStamp, openBreed, esc, pips, traitsHTML, fmtRange, picHTML, refreshPhotos: requestVisiblePhotos };
+    window.PuppyPassport = { breeds, byId, isSeen, toggleStamp, openBreed, esc, pips, traitsHTML, fmtRange, picHTML };
     document.dispatchEvent(new CustomEvent('puppypassport:ready'));
   }
 
