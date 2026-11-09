@@ -3,8 +3,13 @@ Claude for AI IN Age of Humanities
 
 ## Puppy Passport
 
-A static GitHub Pages site (`index.html`, `styles.css`, `app.js`, `match.js`) built from
-`puppy_passport_breeds.json`. Plain HTML, CSS and JavaScript, no build step.
+A kawaii-themed static GitHub Pages site (`index.html`, `styles.css`, `app.js`, `match.js`,
+`cartoon.js`, `photos.js`) built from `puppy_passport_breeds.json`. Plain HTML, CSS and
+JavaScript, no build step.
+
+Every breed has a cartoon dog face drawn by `cartoon.js`. Switch to **Photos** to see each
+breed's lead image from its Wikipedia article instead. Photos are fetched in the visitor's
+browser and fall back to the cartoon when an article has no image or Wikipedia can't be reached.
 
 - **Passport**: search and filter all 617 breeds by group, country, living/extinct and
   whether you've seen them, then stamp the ones you meet. Stamps (with the date) are saved
